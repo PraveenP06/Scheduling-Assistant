@@ -1,2 +1,2 @@
-import psycopg2
-print(psycopg2.__file__)
+from app import db
+db.session.execute("SELECT 1")
