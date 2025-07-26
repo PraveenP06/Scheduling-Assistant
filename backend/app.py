@@ -1,3 +1,4 @@
+from models.activity_models import Activity 
 from extensions import db
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -16,9 +17,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 print("DATABASE_URL =", os.getenv("DATABASE_URL"))
 
 db.init_app(app)
-
-# Import routes
 app.register_blueprint(activity_bp)
 
+with app.app_context():
+    db.create_all()
+    print("Database tables created or already exist.")
 if __name__ == '__main__':
     app.run(debug=True)
