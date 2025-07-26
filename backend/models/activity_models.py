@@ -1,7 +1,9 @@
 from extensions import db
 
 class Activity(db.Model):
+    __tablename__ = 'activity'
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    difficulty = db.Column(db.Integer, nullable=False)
-    estimated_duration = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String, nullable=False)
+    difficulty = db.Column(db.Integer)
+    estimated_duration = db.Column(db.Integer)
