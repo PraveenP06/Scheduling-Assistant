@@ -3,6 +3,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 from dateutil.parser import parse
+import pytz
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
@@ -41,20 +42,22 @@ def main():
         print('No upcoming events found.')
         return
 
+    eastern = pytz.timezone("US/Eastern")
+
     parsed_events = []
     for event in events:
         raw_start = event['start'].get('dateTime', event['start'].get('date'))
         raw_end = event['end'].get('dateTime', event['end'].get('date'))
-        start = parse(raw_start)
-        end = parse(raw_end)
+        start = parse(raw_start).astimezone(eastern)
+        end = parse(raw_end).astimezone(eastern)
         parsed_events.append({'start': start, 'end': end})
         print(f"- {event['summary']}: {start.isoformat()} → {end.isoformat()}")
 
-    # ⏱️ Define your bounds (change to match desired day)
-    day_start = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)
-    day_end = datetime.now().replace(hour=22, minute=0, second=0, microsecond=0)
+    # Define bounds with timezone-aware EDT
+    day_start = eastern.localize(datetime.now().replace(hour=8, minute=0, second=0, microsecond=0))
+    day_end = eastern.localize(datetime.now().replace(hour=22, minute=0, second=0, microsecond=0))
 
-    # 🕳️ Find gaps
+    # Detect gaps
     gaps = detect_gaps_between_events(parsed_events, day_start, day_end)
 
     print("\n🕳️ Available Time Slots:")
