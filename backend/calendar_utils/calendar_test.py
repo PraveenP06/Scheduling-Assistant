@@ -1,4 +1,5 @@
 from __future__ import print_function
+from auth import get_google_credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from datetime import datetime, timedelta
@@ -26,9 +27,7 @@ def format_dt(dt):
     return dt.strftime("%b %d, %I:%M %p").lstrip("0")  # e.g., Jul 31, 1:30 PM
 
 def main():
-    flow = InstalledAppFlow.from_client_secrets_file(
-        'scheduler_credentials.json', SCOPES)
-    creds = flow.run_local_server(port=0)
+    creds = get_google_credentials()
 
     service = build('calendar', 'v3', credentials=creds)
 
