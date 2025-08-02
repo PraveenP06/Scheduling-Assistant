@@ -1,3 +1,4 @@
+from auth import get_google_credentials
 from datetime import datetime
 from calendar_utils.calendar_test import detect_gaps_between_events
 from suggestion.scheduler import schedule_activity
@@ -9,9 +10,7 @@ import pytz
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 def fetch_calendar_events():
-    flow = InstalledAppFlow.from_client_secrets_file('scheduler_credentials.json', SCOPES)
-    creds = flow.run_local_server(port=0)
-
+    creds = get_google_credentials()
     service = build('calendar', 'v3', credentials=creds)
 
     now = datetime.utcnow().isoformat() + 'Z'
