@@ -61,7 +61,13 @@ def main():
     # 🎯 Step 4: Schedule activity
     result = schedule_activity(activity, duration, importance, gaps, desired)
     print("\n📅 Scheduling Result:")
-    print(result)
+    if "start" in result and "end" in result:
+        start_dt = parse(result["start"])
+        end_dt = parse(result["end"])
+        print(f"→ {start_dt.strftime('%b %d, %I:%M %p')} to {end_dt.strftime('%I:%M %p')} ({result['status']})")
+    else:
+        print(result["status"])
+
 
 if __name__ == '__main__':
     main()
