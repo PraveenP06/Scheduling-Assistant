@@ -5,7 +5,7 @@ from dateutil.parser import parse
 from datetime import datetime, timedelta
 import pytz
 
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 def detect_gaps_between_events(events, day_start, day_end):
     events = sorted(events, key=lambda x: x['start'])
