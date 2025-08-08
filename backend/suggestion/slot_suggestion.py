@@ -102,4 +102,4 @@ def suggest_slots_for_activity(gaps, activity_name, duration_minutes, importance
                 })
 
     sorted_slots = sorted(scored_slots, key=lambda s: s['score'], reverse=True)
-    return sorted_slots[:max_suggestions]
+    return sorted_slots[:3]

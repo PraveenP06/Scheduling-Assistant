@@ -1,5 +1,5 @@
 from auth import get_google_credentials
-from datetime import datetime
+from datetime import datetime, timedelta
 from calendar_utils.calendar_test import detect_gaps_between_events
 from suggestion.scheduler import schedule_activity
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 from dateutil.parser import parse
 import pytz
 
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 def fetch_calendar_events():
     creds = get_google_credentials()
@@ -33,7 +33,8 @@ def fetch_calendar_events():
         end = parse(raw_end).astimezone(eastern)
         parsed.append({'start': start, 'end': end})
 
-    return parsed
+    return parsed, service
+
 
 def main():
     eastern = pytz.timezone("US/Eastern")
@@ -42,7 +43,7 @@ def main():
     day_end = today.replace(hour=22)
 
     # 📅 Step 1: Fetch events and detect gaps
-    events = fetch_calendar_events()
+    events, service = fetch_calendar_events()
     gaps = detect_gaps_between_events(events, day_start, day_end)
 
     # 🧠 Step 2: Collect user input
@@ -58,14 +59,33 @@ def main():
         desired = parsed.astimezone(eastern) if parsed.tzinfo else eastern.localize(parsed)
 
     # 🎯 Step 4: Schedule activity
-    result = schedule_activity(activity, duration, importance, gaps, desired)
-    print("\n📅 Scheduling Result:")
-    if "start" in result and "end" in result:
-        start_dt = parse(result["start"])
-        end_dt = parse(result["end"])
-        print(f"→ {start_dt.strftime('%b %d, %I:%M %p')} to {end_dt.strftime('%I:%M %p')} ({result['status']})")
-    else:
-        print(result["status"])
+    results = schedule_activity(activity, duration, importance, gaps, desired)
+
+    print("\n📅 Suggested Time Slots:")
+    valid_slots = [r for r in results if "start" in r and "end" in r]
+
+    if not valid_slots:
+        print(results[0]["status"])
+        return
+
+    for i, slot in enumerate(valid_slots, 1):
+        start_dt = parse(slot["start"])
+        end_dt = parse(slot["end"])
+        print(f"{i}. {start_dt.strftime('%b %d, %I:%M %p')} – {end_dt.strftime('%I:%M %p')} ({slot['status']}, Score: {slot['score']:.1f})")
+
+    choice = int(input("\nWhich slot do you want to schedule? (1–3): "))
+    selected = valid_slots[choice - 1]
+
+    # 📥 Step 5: Insert into Google Calendar
+    event = {
+        'summary': activity,
+        'start': {'dateTime': selected["start"], 'timeZone': 'America/New_York'},
+        'end': {'dateTime': selected["end"], 'timeZone': 'America/New_York'},
+        'description': f"Scheduled via AI assistant (Score: {selected['score']:.1f})"
+    }
+
+    service.events().insert(calendarId='primary', body=event).execute()
+    print("✅ Event scheduled in Google Calendar.")
 
 
 if __name__ == '__main__':
