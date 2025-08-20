@@ -68,10 +68,15 @@ def main():
         print(results[0]["status"])
         return
 
-    for i, slot in enumerate(valid_slots, 1):
-        start_dt = parse(slot["start"])
-        end_dt = parse(slot["end"])
-        print(f"{i}. {start_dt.strftime('%b %d, %I:%M %p')} – {end_dt.strftime('%I:%M %p')} ({slot['status']}, Score: {slot['score']:.1f})")
+    for i, slot in enumerate(results, 1):
+        if "start" in slot and "end" in slot:
+            start_dt = parse(slot["start"])
+            end_dt = parse(slot["end"])
+            score_display = f"{slot['score']:.1f}" if slot["score"] is not None else "N/A"
+            print(f"{i}. {start_dt.strftime('%b %d, %I:%M %p')} – {end_dt.strftime('%I:%M %p')} ({slot['status']}, Score: {score_display})")
+        else:
+            print(f"{i}. {slot['status']}")
+
 
     choice = int(input("\nWhich slot do you want to schedule? (1–3): "))
     selected = valid_slots[choice - 1]
